@@ -30,3 +30,6 @@ docker compose up --build
 ```
 
 CI (`.github/workflows/ci.yml`) sẽ chạy đúng lệnh này để xác nhận cả 3 service khởi động thành công trước khi cho phép merge vào `main`.
+## Sơ đồ kiến trúc
+
+![Sơ đồ kiến trúc hệ thống](architecture.png)

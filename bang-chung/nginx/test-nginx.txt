@@ -1,0 +1,12 @@
+      NGINX TLS/mTLS SECURITY TEST
+
+[1] Test public endpoint /
+PASS: / -> HTTP 200
+
+[2] Test /admin without client certificate
+PASS: /admin without certificate -> HTTP 403
+
+[3] Test /admin with valid client certificate
+PASS: /admin with valid certificate -> HTTP 200
+
+ALL NGINX TLS/mTLS TESTS PASSED

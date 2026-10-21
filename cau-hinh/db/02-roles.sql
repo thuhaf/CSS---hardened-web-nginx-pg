@@ -28,7 +28,7 @@ REVOKE ALL ON SCHEMA public FROM PUBLIC;
 GRANT USAGE ON SCHEMA app TO app_user;
 
 GRANT SELECT ON app.departments TO app_user;   -- danh mục, app chỉ đọc
-GRANT SELECT ON app.users       TO app_user;   -- app chỉ đọc để xác thực, không sửa tài khoản
+GRANT SELECT (id, username, department_id, is_admin) ON app.users TO app_user;   -- app chỉ đọc để xác thực, không sửa tài khoản
 GRANT SELECT, INSERT, UPDATE, DELETE ON app.documents TO app_user;
 
 -- Cố ý KHÔNG cấp CREATE/DROP/ALTER/TRUNCATE: app bị khai thác cũng không đổi được cấu trúc dữ liệu.

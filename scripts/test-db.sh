@@ -73,5 +73,47 @@ else
     exit 1
 fi
 
+# T1-07 (ca am): app_user doc cot password_hash cua app.users phai bi tu choi.
+# Quyen SELECT tren app.users duoc cap theo cot (02-roles.sql), khong gom password_hash.
+if HASH_OUTPUT=$(docker compose exec -T db psql -U app_user -d appdb \
+    -c "SELECT password_hash FROM app.users;" 2>&1); then
+    echo "FAIL: app_user read app.users.password_hash"
+    exit 1
+fi
+
+if printf '%s\n' "$HASH_OUTPUT" | grep -Fq 'permission denied for table users'; then
+    echo "PASS: app_user is denied SELECT on app.users.password_hash"
+else
+    echo "FAIL: password_hash read failed for an unexpected reason:"
+    printf '%s\n' "$HASH_OUTPUT"
+    exit 1
+fi
+
+# "SELECT *" cung phai bi tu choi vi * bao gom password_hash.
+if STAR_OUTPUT=$(docker compose exec -T db psql -U app_user -d appdb \
+    -c "SELECT * FROM app.users;" 2>&1); then
+    echo "FAIL: app_user read app.users with SELECT *"
+    exit 1
+fi
+
+if printf '%s\n' "$STAR_OUTPUT" | grep -Fq 'permission denied for table users'; then
+    echo "PASS: app_user is denied SELECT * on app.users"
+else
+    echo "FAIL: SELECT * failed for an unexpected reason:"
+    printf '%s\n' "$STAR_OUTPUT"
+    exit 1
+fi
+
+# T1-08 (ca duong): cac cot duoc cap van doc duoc (4 tai khoan du lieu gia).
+USER_COUNT=$(docker compose exec -T db psql -U app_user -d appdb -At \
+    -c "SELECT count(*) FROM (SELECT id, username, department_id, is_admin FROM app.users) t;" | tr -d '\r')
+
+if [ "$USER_COUNT" = "4" ]; then
+    echo "PASS: app_user reads the granted columns of app.users (4 rows)"
+else
+    echo "FAIL: unexpected granted-column read of app.users: ${USER_COUNT:-<none>}"
+    exit 1
+fi
+
 echo
 echo "ALL T1 DATABASE RLS TESTS PASSED"

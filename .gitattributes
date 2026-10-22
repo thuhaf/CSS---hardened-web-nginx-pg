@@ -1,0 +1,13 @@
+# Chuẩn hóa xuống dòng. Bằng chứng được băm sha256 vào bang-chung/MANIFEST.txt,
+# nên git KHÔNG được đổi xuống dòng của chúng (nếu không hash lệch giữa Windows và Linux).
+bang-chung/** -text
+
+# Script và cấu hình chạy trong container Linux phải luôn là LF (CRLF làm "sh" báo lỗi).
+*.sh        text eol=lf
+*.sql       text eol=lf
+*.conf      text eol=lf
+*.yml       text eol=lf
+*.py        text eol=lf
+Makefile    text eol=lf
+Dockerfile  text eol=lf
+db-entrypoint text eol=lf

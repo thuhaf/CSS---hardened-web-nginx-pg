@@ -1,27 +1,21 @@
       POSTGRESQL PGAUDIT TESTS (T5)
 
-time="2026-10-08T14:43:26+07:00" level=warning msg="/mnt/d/AN TOÀN HỆ THỐNG MÁY TÍNH/CSS-26C-N03-TH-True-Milk-git/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
 PASS: pgaudit is loaded through shared_preload_libraries
-time="2026-10-08T14:43:26+07:00" level=warning msg="/mnt/d/AN TOÀN HỆ THỐNG MÁY TÍNH/CSS-26C-N03-TH-True-Milk-git/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
 PASS: pgaudit logs DDL and role changes; extension is installed
-time="2026-10-08T14:43:27+07:00" level=warning msg="/mnt/d/AN TOÀN HỆ THỐNG MÁY TÍNH/CSS-26C-N03-TH-True-Milk-git/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
-time="2026-10-08T14:43:28+07:00" level=warning msg="/mnt/d/AN TOÀN HỆ THỐNG MÁY TÍNH/CSS-26C-N03-TH-True-Milk-git/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
 CREATE TABLE
 DROP TABLE
 ALTER ROLE
 ALTER ROLE
 PASS: app_user is denied DDL permissions
-time="2026-10-08T14:43:29+07:00" level=warning msg="/mnt/d/AN TOÀN HỆ THỐNG MÁY TÍNH/CSS-26C-N03-TH-True-Milk-git/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
 PASS: denied DDL did not create a table
-time="2026-10-08T14:43:30+07:00" level=warning msg="/mnt/d/AN TOÀN HỆ THỐNG MÁY TÍNH/CSS-26C-N03-TH-True-Milk-git/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
 PASS: pgAudit recorded CREATE TABLE
 PASS: pgAudit recorded DROP TABLE
 PASS: pgAudit recorded ALTER ROLE
 
 AUDIT LOG EVIDENCE:
-db-1  | 2026-10-08 07:43:28.359 UTC [104] LOG:  AUDIT: SESSION,1,1,DDL,CREATE TABLE,TABLE,app.audit_probe_3308,CREATE TABLE app.audit_probe_3308(id int);,<not logged>
-db-1  | 2026-10-08 07:43:28.365 UTC [104] LOG:  AUDIT: SESSION,2,1,DDL,DROP TABLE,TABLE,app.audit_probe_3308,DROP TABLE app.audit_probe_3308;,<not logged>
-db-1  | 2026-10-08 07:43:28.368 UTC [104] LOG:  AUDIT: SESSION,3,1,ROLE,ALTER ROLE,,,ALTER ROLE app_user CONNECTION LIMIT 99;,<not logged>
-SHA-256: 4514c02c7f20055466a35e4f28105b124313908d4ad483a7bb147cf7b7d14f49
+css---hardened-web-nginx-pg-db-1  | 2026-10-22 03:46:29.433 GMT [186] LOG:  AUDIT: SESSION,1,1,DDL,CREATE TABLE,TABLE,app.audit_probe_144022,CREATE TABLE app.audit_probe_144022(id int);,<not logged>
+css---hardened-web-nginx-pg-db-1  | 2026-10-22 03:46:29.436 GMT [186] LOG:  AUDIT: SESSION,2,1,DDL,DROP TABLE,TABLE,app.audit_probe_144022,DROP TABLE app.audit_probe_144022;,<not logged>
+css---hardened-web-nginx-pg-db-1  | 2026-10-22 03:46:29.438 GMT [186] LOG:  AUDIT: SESSION,3,1,ROLE,ALTER ROLE,,,ALTER ROLE app_user CONNECTION LIMIT 99;,<not logged>
+SHA-256: 5fd93d442e6aa20ffc4fff0a92198c0fd20a61064783293ecf07b6bc0d16de21
 
 ALL T5 PGAUDIT TESTS PASSED

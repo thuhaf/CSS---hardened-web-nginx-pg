@@ -1,0 +1,58 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Page-1" id="jxAPGh8tE6JXw-XJ8eWC">
+    <mxGraphModel dx="1609" dy="878" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="d91R0DLGRP2hD2maaVl8-17" parent="1" style="rounded=1;whiteSpace=wrap;html=1;roundedPerimeter=1;fillColor=#fff2cc;strokeColor=#d6b656;" value="" vertex="1">
+          <mxGeometry height="650" width="570" x="140" y="300" as="geometry" />
+        </mxCell>
+        <mxCell id="d91R0DLGRP2hD2maaVl8-10" edge="1" parent="1" source="d91R0DLGRP2hD2maaVl8-1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;defaultLabelBackgroundColor=gap;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" target="d91R0DLGRP2hD2maaVl8-17">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="d91R0DLGRP2hD2maaVl8-1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;roundedPerimeter=1;labelBackgroundColor=none;labelBorderColor=none;fillColor=#ffcc99;strokeColor=#36393d;verticalAlign=middle;labelPosition=center;verticalLabelPosition=middle;align=center;fontSize=15;" value="&lt;b&gt;&lt;font style=&quot;font-size: 16px;&quot;&gt;NGƯỜI DÙNG&lt;/font&gt;&lt;/b&gt;&lt;div&gt;Client / Browser&lt;/div&gt;" vertex="1">
+          <mxGeometry height="140" width="450" x="200" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="d91R0DLGRP2hD2maaVl8-11" edge="1" parent="1" source="d91R0DLGRP2hD2maaVl8-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;defaultLabelBackgroundColor=gap;" target="d91R0DLGRP2hD2maaVl8-3">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="d91R0DLGRP2hD2maaVl8-2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;roundedPerimeter=1;fillColor=#b0e3e6;strokeColor=#0e8088;verticalAlign=middle;fontSize=15;" value="&lt;b&gt;&lt;font style=&quot;font-size: 16px;&quot;&gt;NGINX REVERSE PROXY&lt;br&gt;&lt;/font&gt;&lt;/b&gt;&lt;p&gt;Điểm truy cập duy nhất từ bên ngoài&lt;/p&gt;&lt;p&gt;&lt;code&gt;/admin&lt;/code&gt; yêu cầu mTLS&lt;/p&gt;" vertex="1">
+          <mxGeometry height="140" width="450" x="200" y="370" as="geometry" />
+        </mxCell>
+        <mxCell id="d91R0DLGRP2hD2maaVl8-12" edge="1" parent="1" source="d91R0DLGRP2hD2maaVl8-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;defaultLabelBackgroundColor=gap;" target="d91R0DLGRP2hD2maaVl8-4">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="d91R0DLGRP2hD2maaVl8-3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;roundedPerimeter=1;fillColor=#cdeb8b;strokeColor=#36393d;fontSize=15;" value="&lt;p&gt;&lt;b&gt;&lt;font style=&quot;font-size: 16px;&quot;&gt;FLASK WEB APP&lt;/font&gt;&lt;/b&gt;&lt;/p&gt;&lt;p&gt;Không công bố cổng trực tiếp ra ngoài&lt;/p&gt;&lt;p&gt;Kết nối DB bằng &lt;code&gt;app_user&lt;/code&gt;&lt;/p&gt;" vertex="1">
+          <mxGeometry height="140" width="450" x="200" y="570" as="geometry" />
+        </mxCell>
+        <mxCell id="d91R0DLGRP2hD2maaVl8-4" parent="1" style="rounded=1;whiteSpace=wrap;html=1;roundedPerimeter=1;fillColor=#ffcccc;strokeColor=#36393d;fontSize=15;" value="&lt;p&gt;&lt;b&gt;&lt;font style=&quot;font-size: 16px;&quot;&gt;POSTGRESQL 16&lt;/font&gt;&lt;/b&gt;&lt;/p&gt;&lt;p&gt;RLS + FORCE RLS&lt;/p&gt;&lt;p&gt;pgAudit: DDL và thay đổi vai trò&lt;/p&gt;&lt;p&gt;Dữ liệu tài liệu theo phòng ban&lt;/p&gt;" vertex="1">
+          <mxGeometry height="140" width="450" x="200" y="780" as="geometry" />
+        </mxCell>
+        <mxCell id="d91R0DLGRP2hD2maaVl8-13" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontSize=14;" value="HTTPS (TCP/443) · TLS 1.2/1.3" vertex="1">
+          <mxGeometry height="30" width="230" x="430" y="250" as="geometry" />
+        </mxCell>
+        <mxCell id="d91R0DLGRP2hD2maaVl8-14" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontSize=14;" value="Chuyển tiếp request nội bộ" vertex="1">
+          <mxGeometry height="30" width="230" x="420" y="530" as="geometry" />
+        </mxCell>
+        <mxCell id="d91R0DLGRP2hD2maaVl8-16" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontSize=14;" value="TLS &lt;code&gt;verify-full&lt;/code&gt; · SCRAM-SHA-256" vertex="1">
+          <mxGeometry height="30" width="250" x="440" y="750" as="geometry" />
+        </mxCell>
+        <mxCell id="d91R0DLGRP2hD2maaVl8-20" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontSize=15;fontStyle=1" value="Docker Compose - Application Components" vertex="1">
+          <mxGeometry height="30" width="350" x="250" y="320" as="geometry" />
+        </mxCell>
+        <mxCell id="d91R0DLGRP2hD2maaVl8-27" parent="1" style="aspect=fixed;sketch=0;html=1;dashed=0;whitespace=wrap;verticalLabelPosition=bottom;verticalAlign=top;fillColor=#2875E2;strokeColor=#ffffff;points=[[0.005,0.63,0],[0.1,0.2,0],[0.9,0.2,0],[0.5,0,0],[0.995,0.63,0],[0.72,0.99,0],[0.5,1,0],[0.28,0.99,0]];shape=mxgraph.kubernetes.icon2;prIcon=k_proxy;labelPerimeter=1;" value="" vertex="1">
+          <mxGeometry height="37" width="38.54" x="280" y="380" as="geometry" />
+        </mxCell>
+        <mxCell id="d91R0DLGRP2hD2maaVl8-28" parent="1" style="image;aspect=fixed;html=1;align=center;fontSize=12;image=img/lib/azure2/databases/Azure_Database_PostgreSQL_Server.svg;points=[[0.5,0.003,0],[0.502,0.998,0],[0,0.499,0],[1,0.499,0],[0.976,0.093,0],[0.983,0.9,0],[0.017,0.9,0],[0.014,0.103,0]];labelPerimeter=1;" value="" vertex="1">
+          <mxGeometry height="37" width="27.75" x="318.54" y="784.72" as="geometry" />
+        </mxCell>
+        <mxCell id="d91R0DLGRP2hD2maaVl8-30" parent="1" style="aspect=fixed;html=1;align=center;shadow=0;dashed=0;fillColor=#FF6A00;strokeColor=none;shape=mxgraph.alibaba_cloud.webplus_web_app_service;" value="" vertex="1">
+          <mxGeometry height="37" width="37" x="313.90999999999997" y="585" as="geometry" />
+        </mxCell>
+        <mxCell id="d91R0DLGRP2hD2maaVl8-33" parent="1" style="sketch=0;pointerEvents=1;shadow=0;dashed=0;html=1;strokeColor=none;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;align=center;fillColor=#505050;shape=mxgraph.mscae.intune.user_group;labelPerimeter=1;" value="" vertex="1">
+          <mxGeometry height="37" width="50" x="400" y="90" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

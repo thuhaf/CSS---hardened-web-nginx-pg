@@ -1,4 +1,4 @@
       M3 SECURITY INTEGRATION PYTESTS - CHI
 
 ........                                                                 [100%]
-8 passed in 2.72s
+8 passed in 2.74s

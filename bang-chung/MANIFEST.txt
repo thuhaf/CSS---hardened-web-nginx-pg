@@ -12,7 +12,7 @@ f323930aa2b2ff637ec49744c6f26709dbd39dd6b4873c4b097c109b33b5331a  bang-chung/db/
 4cbdca7d497d995130f14cd31876dfa70e7bcf3de6ae219fa0a158e77f78e057  bang-chung/db/test-audit.txt
 0c0e18cd7aeba820cccd54951ba0a11b5bd0d8d9e4e5bc9dd3a6e6f33dc2e018  bang-chung/db/test-db.txt
 519caf917af42981ecfc8a8eaf8c20f9ff3c1861c5114387791516b5d6f5b2af  bang-chung/db/test-m3-security-chi.txt
-b7b47561114810ad0e4052c9170900a70b476bbbae2ce56e81043667a240500b  bang-chung/db/test-m3-security.txt
+f660ec06e8455e6af1276414fb2cbf31f089f8219b78a564cad9fa9c6c1b4edd  bang-chung/db/test-m3-security.txt
 1f88809249a5247690c964fd2c2de73ce540380320dbe7e54043ef86e9e6ef3e  bang-chung/db/test-t3-db.txt
 051a2891005331a2169817923c070468fa6d7d8994d72736f655b9acad479e31  bang-chung/defend/defend.txt
 779dc63b95a990c0bc1331bd9a7971bf6dff0aebdb71232231bd49771eff8f52  bang-chung/nginx/t2-truoc.txt
@@ -21,6 +21,6 @@ b7b47561114810ad0e4052c9170900a70b476bbbae2ce56e81043667a240500b  bang-chung/db/
 4edf28cbd40956577733d6baf37526efd3b3400cef0f54da729d1fe5bfae4ad9  bang-chung/sbom/db.cdx.json
 5457d18a24c8bf35e34f121c97845d9f3cf23ca3b263631b0bfb145b5198f75b  bang-chung/sbom/nginx.cdx.json
 bdbd46881641e2c1c01644a7ca0e5f236ffbe2b343cd98f48fd971e41bd72f19  bang-chung/sbom/web.cdx.json
-c0548d451a4597f7b0ed7069174292de10a679e2f6bad2948df93f0fc73b42e8  bang-chung/secrets/gitleaks.txt
+b117e7fdf48d5e0b55ca5af94260e6b09818f0481acef7c900411d4576bafc67  bang-chung/secrets/gitleaks.txt
 e865dc70feb22fe2fae8e27b2913b1cf6e314846123f4cb3b436cfb763fee4cf  bang-chung/testssl-localhost-8443.txt
-bc999ef05b44cd5b964aea7617f0f08367e55ca8d5c85156a461cb6baa9d599a  bang-chung/web/test-web.txt
+93a9324bbb1b87c4d9b65b27ee779d535e57fcab5213c0988823214b7c3125e1  bang-chung/web/test-web.txt

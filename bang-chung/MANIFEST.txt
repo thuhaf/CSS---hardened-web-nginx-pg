@@ -1,12 +1,12 @@
 99fefb51b2267f7448bc17c318a5d15c97bafa1d13413dbfbfb65cce8bf4b199  bang-chung/attack/attack.txt
-ff49f4fba7497f574a51f5991db132f67e087d0a2de982cde217c6f69bd85d4c  bang-chung/db/t1-block-cross-department-insert.txt
+ddc05315e0c64d6307b32df8fe79d147c86ce21e9647b38668d25c5d1326c484  bang-chung/db/t1-block-cross-department-insert.txt
 0e82bc239e2f2948da903af7e7a13faa8211d752cadee6f5afc045ec3cf909d6  bang-chung/db/t1-department-1.txt
 e5de3a75884480ddc30d11e5f62719523d7610ce1c99279f7dd236d7974f6022  bang-chung/db/t1-no-context.txt
 b0aa53ce303c206d2243c6b5f1d2cafe511e3b59080c47259882f067028b7b10  bang-chung/db/t1-policy.txt
 86bbfdbdb8b8a953ea83b24b3e71d3a2b29fa7d48158674afaecbfed63a9a1bd  bang-chung/db/t1-truoc.txt
 edeab9dc4403f436359272904481a6b16297c1ee5f79c91d3c90f38d1ce24a6d  bang-chung/db/t3-truoc.txt
-e115473e88b75f5e02c7da3bd8df40f087216ad1ad3615f90311f4b7ee282bb2  bang-chung/db/t5-app-user-ddl-denied.txt
-860000817b8b1d2090ad2166fc7e676ab4c29b3b66a9934b59ff93563dd620f9  bang-chung/db/t5-app-user-ddl-not-created.txt
+6a3c5021ecb36625bba4dfb32e7f1a21c870cd48e4fdac82d7315432a823fbb8  bang-chung/db/t5-app-user-ddl-denied.txt
+21d70dfe955d065e77cc2febd2a5ad7c60b9a571290a7b03476fd4aae380e7c5  bang-chung/db/t5-app-user-ddl-not-created.txt
 4514c02c7f20055466a35e4f28105b124313908d4ad483a7bb147cf7b7d14f49  bang-chung/db/t5-pgaudit.log
 f323930aa2b2ff637ec49744c6f26709dbd39dd6b4873c4b097c109b33b5331a  bang-chung/db/t5-truoc.txt
 4cbdca7d497d995130f14cd31876dfa70e7bcf3de6ae219fa0a158e77f78e057  bang-chung/db/test-audit.txt

@@ -1,15 +1,13 @@
       DATABASE ROW LEVEL SECURITY TESTS (T1)
 
-time="2026-10-08T14:43:21+07:00" level=warning msg="/mnt/d/AN TOÀN HỆ THỐNG MÁY TÍNH/CSS-26C-N03-TH-True-Milk-git/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
 PASS: documents_by_department policy applies to app_user
-time="2026-10-08T14:43:22+07:00" level=warning msg="/mnt/d/AN TOÀN HỆ THỐNG MÁY TÍNH/CSS-26C-N03-TH-True-Milk-git/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
 PASS: row-level security is enabled and forced
-time="2026-10-08T14:43:23+07:00" level=warning msg="/mnt/d/AN TOÀN HỆ THỐNG MÁY TÍNH/CSS-26C-N03-TH-True-Milk-git/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
 PASS: app_user sees no documents without department context
-time="2026-10-08T14:43:23+07:00" level=warning msg="/mnt/d/AN TOÀN HỆ THỐNG MÁY TÍNH/CSS-26C-N03-TH-True-Milk-git/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
 PASS: department 1 sees exactly its 2 documents
-time="2026-10-08T14:43:24+07:00" level=warning msg="/mnt/d/AN TOÀN HỆ THỐNG MÁY TÍNH/CSS-26C-N03-TH-True-Milk-git/docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
 PASS: unknown department context sees no documents
 PASS: RLS rejected insert into another department
+PASS: app_user is denied SELECT on app.users.password_hash
+PASS: app_user is denied SELECT * on app.users
+PASS: app_user reads the granted columns of app.users (4 rows)
 
 ALL T1 DATABASE RLS TESTS PASSED

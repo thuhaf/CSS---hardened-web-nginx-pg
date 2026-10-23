@@ -1,16 +1,29 @@
 # Báo cáo kĩ thuật
 
-Bảy phần dưới đây theo đề của giảng viên (package nộp final). Xuất ra `bao-cao.pdf` khi nộp. Thẻ nộp: `2026-27-HK1/project-final` (gắn sau khi clip, report, slides đã nằm trong cùng một commit). Các dòng bắt đầu bằng "CHỜ CẬP NHẬT" là chỗ chừa lại; xóa hết trước khi xuất PDF.
+Sáu mục dưới đây là khung bắt buộc. Xuất ra `bao-cao.pdf` khi nộp.
 
-## 1. Bài toán và phạm vi
+## 1. Bối cảnh và phạm vi
 
 Nhóm đóng vai đội được một doanh nghiệp vừa và nhỏ tại Việt Nam thuê để dựng và bàn giao cấu hình an toàn cho một hệ thống nội bộ: khoảng 200 người dùng, ba máy chủ container, không có đội an toàn thông tin riêng, ngân sách công cụ dưới 30 triệu đồng một năm. Hệ thống thuộc Chủ đề A gồm nginx làm cổng vào có TLS và mTLS cho đường quản trị, một ứng dụng web nhỏ (Flask), và PostgreSQL 16 lưu dữ liệu các phòng ban.
 
 **Tài sản cần bảo vệ.** Dữ liệu tài liệu của ba phòng ban (Kinh doanh, Nhân sự, Kế toán) trong PostgreSQL; đường quản trị `/admin`; khóa riêng và chứng chỉ TLS/mTLS.
 
-**Trong phạm vi.** Cấu hình và vận hành an toàn của ba thành phần trên, đo bằng các loại bằng chứng mà đề yêu cầu: đầu ra testssl, chính sách Row Level Security kèm ca kiểm âm, log pgaudit, và bảng đối chiếu trước và sau khi làm cứng. Năm mối đe dọa chọn theo STRIDE (mục 2): T1 vượt quyền giữa phòng ban, T2 nghe lén tới nginx, T3 sửa gói tin giữa ứng dụng và cơ sở dữ liệu, T4 lộ khóa mTLS, T5 chối bỏ thao tác quản trị. **T4 chỉ được nhận diện, chưa có biện pháp riêng và chưa có ca kiểm** (mục 5.6).
+**Trong phạm vi.** Cấu hình và vận hành an toàn của ba thành phần trên, đo bằng các loại bằng chứng mà đề yêu cầu: đầu ra testssl, chính sách Row Level Security kèm ca kiểm âm, log pgaudit, và bảng đối chiếu trước và sau khi làm cứng. Năm mối đe dọa chọn theo STRIDE (mục 2): T1 vượt quyền giữa phòng ban, T2 nghe lén tới nginx, T3 sửa gói tin giữa ứng dụng và cơ sở dữ liệu, T4 lộ khóa mTLS, T5 chối bỏ thao tác quản trị. **T4 chỉ được nhận diện, chưa có biện pháp riêng và chưa có ca kiểm** (mục 5).
 
 **Ngoài phạm vi.** Từ chối dịch vụ không được chọn. Ứng dụng chưa có đăng nhập người dùng cuối: phòng ban của phiên lấy từ biến môi trường `APP_DEPARTMENT_ID` (đặt cố định bằng 1 trong `docker-compose.yml`), đủ để chứng minh cơ chế RLS nhưng chưa phải xác thực thật. Hệ thống chạy một máy, không có sao lưu và không có tính sẵn sàng cao. Chứng chỉ do CA tự ký của nhóm, mật khẩu trong `docker-compose.yml` và `02-roles.sql` là giá trị giữ chỗ cho dev và CI, dữ liệu là dữ liệu giả. Mọi thử nghiệm tấn công chỉ chạy trong mạng compose của chính nhóm, bằng `curl` và `psql`, không dùng công cụ khai thác.
+
+**Tình trạng của bản nộp.**
+
+| Hạng mục | Tình trạng |
+|---|---|
+| nginx: TLS 1.2/1.3, mTLS cho `/admin`, 3 ca `test-nginx.sh` | Có trong `main`, chạy trong `make verify` |
+| Web: `/health`, `/db-check` có phòng ban của phiên, pytest | Có trong `main`, `test-web.sh` chạy trong `make verify` |
+| PostgreSQL: RLS bật và FORCE, policy theo phòng ban (T1) | Có trong `main`, `test-db.sh` và `test-m3-security.sh` trong `make verify` |
+| PostgreSQL: pgaudit ghi DDL và đổi vai trò (T5) | Có trong `main`, `test-audit.sh` trong `make verify` |
+| PostgreSQL: TLS, `hostssl` + `scram-sha-256`, web `verify-full` (T3) | Có trong `main`, `test-t3-db.sh` trong `make verify` |
+| Ghim digest ba image, SBOM CycloneDX, ký Cosign | Digest ghim trong ba Dockerfile; SBOM của ba image có trong `bang-chung/sbom/` và được sinh lại trong `ci.yml`; ký Cosign chỉ chạy trên `main`, các file `*.sigstore.json` không commit vào kho |
+| MANIFEST sha256, quét gitleaks, `attack`, `defend`, `export-evidence`, `preflight` | Có trong `main`, nối vào `Makefile`; CI `make verify` xanh (commit `b38c8b2`) |
+| Đầu ra CI của nginx, web, pytest tích hợp và gitleaks | Đã lưu trong `bang-chung/`; các tệp này là bằng chứng của commit `b38c8b2`, không xác nhận các thay đổi ở PR #33, #34, #35 vì các PR này chưa có lần chạy Actions xanh |
 
 ## 2. Mô hình đe dọa
 
@@ -28,55 +41,20 @@ Năm mối đe dọa được xác định, trong đó ba mối đầu khớp đ
 
 **T2** (Information Disclosure, T1040): kẻ tấn công trên cùng phân đoạn mạng đọc trộm gói tin gửi tới nginx khi kết nối chưa mã hóa. Đây là đoạn kết nối nhóm có bằng chứng xác minh trực tiếp. Biện pháp là TLS 1.2/1.3 bắt buộc tại nginx, xác minh bằng testssl; đoạn từ ứng dụng xuống PostgreSQL được xử lý riêng ở T3.
 
-**T3** (Tampering, T1557) nặng hơn T2 một bước: khi kẻ tấn công đã ở vị trí trung gian, cấu hình mặc định của PostgreSQL cho phép kết nối không mã hóa, nên họ không chỉ đọc mà còn chèn hoặc sửa được câu lệnh truyền đi. Biện pháp gồm hai thiết lập nằm ở hai file khác nhau nhưng phải đi cùng nhau: `ssl = on` trong `postgresql.conf` để máy chủ có khả năng phục vụ TLS, và dòng `hostssl ... scram-sha-256` trong `pg_hba.conf` kèm các dòng `host ... reject` để kết nối không TLS bị từ chối. Thiếu `hostssl` thì TLS chỉ là tùy chọn, client vẫn chọn được kết nối thường; thiếu `ssl = on` thì không kết nối nào khớp dòng `hostssl` và web mất kết nối DB. Web kết nối với `PGSSLMODE=verify-full` để kiểm chứng chỉ và tên máy chủ, tài khoản `app_user` xác thực bằng SCRAM. Nhóm không dùng chứng chỉ khách cho DB (mục 4.1 và 5.8).
+**T3** (Tampering, T1557) nặng hơn T2 một bước: khi kẻ tấn công đã ở vị trí trung gian, cấu hình mặc định của PostgreSQL cho phép kết nối không mã hóa, nên họ không chỉ đọc mà còn chèn hoặc sửa được câu lệnh truyền đi. Biện pháp gồm hai thiết lập nằm ở hai file khác nhau nhưng phải đi cùng nhau: `ssl = on` trong `postgresql.conf` để máy chủ có khả năng phục vụ TLS, và dòng `hostssl ... scram-sha-256` trong `pg_hba.conf` kèm các dòng `host ... reject` để kết nối không TLS bị từ chối. Thiếu `hostssl` thì TLS chỉ là tùy chọn, client vẫn chọn được kết nối thường; thiếu `ssl = on` thì không kết nối nào khớp dòng `hostssl` và web mất kết nối DB. Web kết nối với `PGSSLMODE=verify-full` để kiểm chứng chỉ và tên máy chủ, tài khoản `app_user` xác thực bằng SCRAM. Nhóm không dùng chứng chỉ khách cho DB (mục 3.1 và 5.3).
 
-**T4** (Spoofing, T1552.004): khóa riêng dùng cho mTLS bị đánh cắp, cho phép kẻ tấn công giả mạo client hợp lệ để vào `/admin`. Đường này đã đòi chứng chỉ khách (nginx đặt `ssl_verify_client optional` và trả 403 ở `/admin` nếu `$ssl_client_verify` khác `SUCCESS`), khóa được đặt `chmod 600` và không commit vào git. Riêng T4, nhóm mới dừng ở nhận diện, chưa có biện pháp riêng hay ca kiểm (mục 5.6).
+**T4** (Spoofing, T1552.004): khóa riêng dùng cho mTLS bị đánh cắp, cho phép kẻ tấn công giả mạo client hợp lệ để vào `/admin`. Đường này đã đòi chứng chỉ khách (nginx đặt `ssl_verify_client optional` và trả 403 ở `/admin` nếu `$ssl_client_verify` khác `SUCCESS`), khóa được đặt `chmod 600` và không commit vào git. Riêng T4, nhóm mới dừng ở nhận diện, chưa có biện pháp riêng hay ca kiểm (mục 5).
 
 **T5** (Repudiation, T1070): thao tác đổi vai trò hoặc thay đổi cấu trúc dữ liệu không được ghi nhận, khiến không truy vết được trách nhiệm khi có sự cố. Biện pháp là bật pgaudit ghi mọi thao tác DDL và đổi vai trò.
 
-Nếu nginx, lớp ngoài cùng, bị vượt qua, kẻ tấn công vẫn chưa chạm được dữ liệu một cách tự do. Họ không dùng được tài khoản có quyền cao trên DB, vì web chỉ kết nối bằng `app_user`; RLS vẫn lọc dữ liệu theo phòng ban; kết nối web–DB vẫn buộc mã hóa; còn các thao tác DDL và đổi vai trò sẽ để lại dấu vết trong log pgaudit. Các lớp này dựa trên cơ chế khác nhau nên một lớp sụp đổ không kéo theo lớp còn lại. Có một giới hạn cần nói rõ: vì phòng ban hiện là cấu hình cố định của ứng dụng, RLS lọc đúng theo giá trị mà web đặt, còn việc giá trị đó lấy từ danh tính đã xác thực là phần nhóm chưa làm (mục 5.6).
+Nếu nginx, lớp ngoài cùng, bị vượt qua, kẻ tấn công vẫn chưa chạm được dữ liệu một cách tự do. Họ không dùng được tài khoản có quyền cao trên DB, vì web chỉ kết nối bằng `app_user`; RLS vẫn lọc dữ liệu theo phòng ban; kết nối web–DB vẫn buộc mã hóa; còn các thao tác DDL và đổi vai trò sẽ để lại dấu vết trong log pgaudit. Các lớp này dựa trên cơ chế khác nhau nên một lớp sụp đổ không kéo theo lớp còn lại. Có một giới hạn cần nói rõ: vì phòng ban hiện là cấu hình cố định của ứng dụng, RLS lọc đúng theo giá trị mà web đặt, còn việc giá trị đó lấy từ danh tính đã xác thực là phần nhóm chưa làm (mục 5).
 
-## 3. Kiến trúc và quyền
+## 3. Kiến trúc và các quyết định cấu hình, kèm lý do
 
-Hệ thống gồm ba container nối tiếp nhau trong một mạng compose (`internal`, kiểu bridge): nginx ở ngoài cùng, ứng dụng web Flask ở giữa, PostgreSQL 16 ở trong cùng. Từ máy chủ ra ngoài chỉ có nginx mở cổng.
+![Sơ đồ kiến trúc hệ thống](architecture.png)
 
-```
-Người dùng --> [nginx :80/:443] --> [web :8000] --> [PostgreSQL :5432]
-                    |
-                    +-- /admin: chỉ qua khi có chứng chỉ khách hợp lệ (mTLS)
-```
+### 3.1 Quyết định theo thành phần, kèm phương án đã loại
 
-| Thành phần | Cổng | Ai kết nối tới được | Chạy bằng vai trò |
-|---|---|---|---|
-| nginx | 443 (HTTPS) và 80 (chỉ chuyển hướng 301) công bố ra ngoài | Mọi máy khách; riêng `/admin` đòi chứng chỉ khách do CA của nhóm ký | Cấu hình trong `cau-hinh/nginx/conf.d/default.conf` |
-| web (Flask) | 8000, không publish ra ngoài | Chỉ nginx, qua mạng `internal` | Người dùng hệ điều hành uid 10001, không phải root |
-| db (PostgreSQL) | 5432, không publish ra ngoài | Chỉ web, qua mạng `internal`, bằng TLS và mật khẩu SCRAM | Kết nối của ứng dụng dùng `app_user`; chủ sở hữu `postgres` chỉ dùng để khởi tạo |
-
-**Bốn ranh giới tin cậy** (khớp `docs/threat-model.json`, RG1 đến RG4) và cơ chế đặt tại mỗi ranh giới:
-
-| Ranh giới | Cơ chế | Mối đe dọa liên quan |
-|---|---|---|
-| RG1. Mạng ngoài và nginx | Chỉ cổng 443 phục vụ nội dung, TLS 1.2/1.3; cổng 80 chuyển sang 443 | T2 |
-| RG2. Người dùng thường và `/admin` | mTLS: `ssl_verify_client optional`, `/admin` trả 403 nếu `$ssl_client_verify` khác `SUCCESS` | T4 |
-| RG3. nginx và web | Web không publish cổng, chỉ nhận request đã đi qua nginx | T1 |
-| RG4. Web và PostgreSQL | `hostssl` + SCRAM, web `PGSSLMODE=verify-full`; vai trò `app_user` đặc quyền tối thiểu; RLS theo phòng ban; pgaudit | T1, T3, T5 |
-
-**Quyền trong cơ sở dữ liệu.** Nguyên tắc là mỗi vai trò chỉ có đúng quyền cần dùng, và quyền nguy hiểm bị tắt chủ động chứ không để mặc định.
-
-| Vai trò | Quyền | Ghi chú |
-|---|---|---|
-| `postgres` (chủ sở hữu) | Siêu người dùng | Chỉ khởi tạo schema và vai trò; luôn bỏ qua RLS nên web không được dùng |
-| `app_user` (web dùng) | `LOGIN`, `NOSUPERUSER`, `NOCREATEDB`, `NOCREATEROLE`, `NOREPLICATION`, `NOBYPASSRLS`; `CONNECT` vào `appdb`; `USAGE` schema `app` | Không có quyền DDL; `NOBYPASSRLS` bảo đảm RLS luôn áp lên vai trò này |
-| `app_user` trên `app.departments` | `SELECT` | Danh mục, ứng dụng chỉ đọc |
-| `app_user` trên `app.users` | `SELECT` (hiện trên mọi cột, kể cả `password_hash` giả) | Web hiện không truy vấn bảng này; sẽ thu hẹp theo cột (id, username, department_id, is_admin) |
-| `app_user` trên `app.documents` | `SELECT`, `INSERT`, `UPDATE`, `DELETE`, nhưng bị RLS lọc theo phòng ban của phiên | `FORCE ROW LEVEL SECURITY` áp cả lên chủ bảng; thiếu phòng ban thì thấy 0 dòng |
-| `PUBLIC` | Bị thu hồi mọi quyền trên cơ sở dữ liệu và trên schema `public` | Mặc định PostgreSQL cho mọi vai trò quyền `CONNECT` |
-
-Về đường vào cơ sở dữ liệu: `pg_hba.conf` chỉ cho `app_user` vào `appdb` bằng `hostssl` với `scram-sha-256`; mọi kết nối TCP không mã hóa, cả IPv4 lẫn IPv6, bị `reject`. Dòng `local` (ổ cắm Unix bên trong container) dùng `trust`; chỉ tiến trình trong container db chạm tới được nó, không đi qua mạng.
-
-## 4. Quyết định cấu hình, kèm lý do
-
-### 4.1 Quyết định theo thành phần, kèm phương án đã loại
 
 | Thành phần | Quyết định | Lý do | Phương án đã loại | Mối đe dọa |
 |---|---|---|---|---|
@@ -93,12 +71,11 @@ Về đường vào cơ sở dữ liệu: `pg_hba.conf` chỉ cho `app_user` và
 | Kho mã | `Makefile` đặt `-o pipefail` | Thiếu thì `script \| tee file` trả mã 0 dù script FAIL, CI xanh giả | Không có | mọi mối |
 | Kho mã | Chứng chỉ và khóa sinh bởi `scripts/generate-dev-certs.sh` khi `make up`, hạn 365 ngày; `.gitignore` chặn `*.key`, `*.crt` và các tệp trung gian trong `cau-hinh/nginx/certs/` | Khóa không nằm trong git; mỗi lần CI sinh bộ mới | Commit khóa dev: loại | T4 |
 
-
-### 4.2 Cách các lớp phối hợp
+### 3.2 Cách các lớp phối hợp
 
 nginx chặn người ngoài và đường quản trị không chứng chỉ. Nếu lớp này bị vượt, `app_user` với đặc quyền tối thiểu và RLS vẫn giới hạn dữ liệu theo phòng ban. Nếu kẻ ở vị trí trung gian nằm giữa web và DB, TLS với `verify-full` chặn đọc và sửa. Còn pgaudit để lại dấu vết cho thao tác quản trị. Mỗi lớp có cơ chế riêng nên một lớp hỏng không kéo lớp khác.
 
-### 4.3 Chi phí và tỉ lệ (ALE, ROSI)
+### 3.3 Chi phí và tỉ lệ (ALE, ROSI)
 
 ALE (Annualized Loss Expectancy) bằng SLE (thiệt hại một sự cố) nhân ARO (số sự cố mỗi năm). Điểm tác động và khả năng (thang 1 đến 5) lấy từ `docs/threat-model.json`. **Các bảng quy đổi sang tiền là giả định của nhóm, không phải số đo**: tác động 1 đến 5 ứng với 2, 10, 40, 120, 300 triệu đồng mỗi sự cố; khả năng 1 đến 5 ứng với 0,05, 0,1, 0,3, 0,6, 1,0 sự cố mỗi năm; công kỹ sư 200.000 đồng một giờ, khấu hao công dựng trong 3 năm. Bảng tính bằng `python3 scripts/tinh-ale.py`; đổi giả định trong script thì bảng đổi theo. Cần người nắm số liệu thật của doanh nghiệp xác nhận trước khi dùng làm căn cứ quyết định. Công cụ đều mã nguồn mở nên chi phí là công kỹ sư, không có tiền giấy phép.
 
@@ -131,11 +108,11 @@ ALE (Annualized Loss Expectancy) bằng SLE (thiệt hại một sự cố) nhâ
 | Chứng chỉ khách cho DB (T3 mở rộng) | Chưa nên | Thêm quản lý khóa và sửa web, lợi ích bổ sung nhỏ khi `verify-full` và SCRAM đã bật |
 | Biện pháp cho T4 (CRL/OCSP, vault khóa) | Nên cân nhắc nếu doanh nghiệp dùng `/admin` thật | Rủi ro lớn nhất còn lại ngoài tầm RLS |
 
-## 5. Cách kiểm, kết quả đo và giới hạn
+## 4. Bằng chứng an toàn cho từng quyết định
 
-### 5.1 Ca kiểm và bằng chứng
+### 4.1 Ca kiểm và bằng chứng
 
-`make verify` chạy các script dưới đây và ghi đầu ra vào `bang-chung/`. Hai target `make attack` (góc nhìn kẻ tấn công, in `BLOCKED` hoặc `SUCCEEDED`) và `make defend` (đọc cấu hình đang chạy so với giá trị mong đợi) bổ sung hai góc nhìn trên cùng hệ thống. Trên CI (commit `fb09032`), `make verify` chạy xanh: nginx 3 PASS, web 8 pytest PASS, T1 6 PASS, T3 3 PASS, T5 5 PASS, pytest tích hợp M3 8 PASS, gitleaks không phát hiện bí mật, `attack` 6 BLOCKED, `defend` 9 PASS, MANIFEST 26 tệp.
+`make verify` chạy các script dưới đây và ghi đầu ra vào `bang-chung/`. Hai target `make attack` (góc nhìn kẻ tấn công, in `BLOCKED` hoặc `SUCCEEDED`) và `make defend` (đọc cấu hình đang chạy so với giá trị mong đợi) bổ sung hai góc nhìn trên cùng hệ thống. Trên CI (commit `b38c8b2`), `make verify` chạy xanh: nginx 3 PASS, web 8 pytest PASS, T1 6 PASS, T3 3 PASS, T5 5 PASS, pytest tích hợp M3 8 PASS, gitleaks không phát hiện bí mật, `attack` 6 BLOCKED, `defend` 9 PASS, MANIFEST 26 tệp. Các kết quả này chỉ xác nhận commit `b38c8b2`; các PR #33, #34, #35 chưa có lần chạy Actions xanh nên chưa được xác nhận bằng bằng chứng CI. Lần thử cục bộ ngày 22/10 bằng GNU Make 4.4.1 trên Windows dừng ngay ở lệnh đầu `mkdir -p` với lỗi `The syntax of the command is incorrect.`, chưa chạy ca kiểm nào; vì vậy không xem đây là kết quả kiểm thử đạt hay lỗi của ứng dụng. Git hiện bật `core.autocrlf=true`, làm các script trong worktree thành CRLF và Bash trên WSL cũng báo lỗi ký tự `\r`; cần chạy trong môi trường Linux/WSL với script ở dạng LF để có kết quả hợp lệ.
 
 | Mã | Ca kiểm | Script | Bằng chứng |
 |---|---|---|---|
@@ -157,7 +134,7 @@ ALE (Annualized Loss Expectancy) bằng SLE (thiệt hại một sự cố) nhâ
 
 Bốn ca âm (T1-04, T3-02, T5-02, `/admin` không chứng chỉ) đều là ca kẻ tấn công thử và bị chặn. `attack.txt` ghi đủ sáu phép thử: HTTP cổng 80, `/admin` không chứng chỉ, đọc và ghi chéo phòng ban, DB không TLS, tạo bảng bằng `app_user`; dòng kết luận là "ATTACK RESULT: moi tan cong bi chan".
 
-### 5.2 Kết quả đo được
+### 4.2 Kết quả đo được
 
 - **T2.** testssl 3.2.2 ngày 05/10: SSLv2, SSLv3, TLS 1.0, 1.1 không được cung cấp; TLS 1.2 và 1.3 được cung cấp; điểm 93, hạng B vì chuỗi tin cậy chưa đầy đủ (CA tự ký). Lần chạy nhắm cổng 8443, trong khi `docker-compose.yml` hiện công bố cổng 443, nên kết quả này cần chạy lại trên bản cuối.
 - **T1.** 6 ca của `test-db.sh` đều PASS, gồm ca âm ghi sang phòng ban khác; 4 pytest T1 trong `test-m3-security.sh` cũng PASS.
@@ -165,13 +142,13 @@ Bốn ca âm (T1-04, T3-02, T5-02, `/admin` không chứng chỉ) đều là ca 
 - **T5.** `t5-pgaudit.log` có `AUDIT: SESSION,...,DDL,CREATE TABLE`, `DROP TABLE` và `ROLE,ALTER ROLE`.
 - **Góc nhìn tấn công và phòng thủ.** `attack.txt` (chạy 10/10) báo cả sáu phép thử bị chặn. `defend.txt` (chạy 09/10) có 9 dòng PASS: RLS bật và FORCE, `app_user` không bypassrls và không superuser, `ssl_protocols` chỉ TLS 1.2/1.3, `ssl = on`, đúng 1 dòng `hostssl` SCRAM và 2 dòng `host` reject, `pgaudit.log = ddl,role`, pgaudit nạp sẵn. Hai tệp chạy ở hai thời điểm khác nhau; bản chạy trên CI cùng commit là bản đối chiếu cuối.
 
-### 5.3 Tính toàn vẹn của bằng chứng
+### 4.3 Tính toàn vẹn của bằng chứng
 
 Một file log dán tay không phải bằng chứng, nên cuối `make verify` có hai bước. `scripts/scan-secrets.sh` chạy gitleaks 8.18.4 (cùng phiên bản và sha256 với cổng an toàn) và ghi `bang-chung/secrets/gitleaks.txt`. `scripts/make-manifest.sh` ghi `bang-chung/MANIFEST.txt` (mỗi file một dòng sha256), từ chối chạy nếu có khóa riêng trong `bang-chung/`, rồi tự kiểm lại: sửa một file hoặc thêm file mới chưa vào MANIFEST thì bước `check` báo lỗi. `make export-evidence` đóng gói thư mục này vào `dist/`.
 
 Cần đọc hai điều kiện đi kèm. Thứ nhất, gitleaks trên CI chạy trên bản clone nông (một commit), nên kết quả "không phát hiện bí mật" chỉ có giá trị cho commit đó, chưa phải toàn bộ lịch sử. Thứ hai, MANIFEST bản được commit hiện ghi sha256 của 22 tệp, nhưng 19 trong số đó được băm ở dạng xuống dòng CRLF của máy Windows chạy thử, trong khi bản lưu trong git là LF; vì vậy chỉ riêng MANIFEST này không tự kiểm lại đúng trên máy khác. Phép kiểm toàn vẹn có giá trị nằm ở bước `generate` rồi `check` chạy cuối `make verify` trên CI (26 tệp). Nhóm sẽ xử lý bằng `.gitattributes` đặt `bang-chung/** -text` và sinh lại MANIFEST sau khi chuẩn hóa về LF.
 
-### 5.4 Bảng đối chiếu trước và sau khi làm cứng
+### 4.4 Bảng đối chiếu trước và sau khi làm cứng
 
 **Lưu ý phương pháp.** Các file "trước" là **tái lập trạng thái trước khi làm cứng** (T1 tắt tạm RLS, T2 nginx gốc không TLS, T3 chạy trên `main` trước khi PR T3 được gộp, T5 PostgreSQL gốc không có pgaudit), chạy ngày 09/10. Chúng không phải ảnh chụp từ trước khi nhóm làm.
 
@@ -183,12 +160,13 @@ Cần đọc hai điều kiện đi kèm. Thứ nhất, gitleaks trên CI chạy
 | T4 | Không đo | Không đo | | |
 | T5 | Không nạp pgaudit, 0 dòng `AUDIT:` dù đã chạy `CREATE TABLE` và `ALTER ROLE` | Log ghi DDL và `ALTER ROLE` | `db/t5-truoc.txt` | `t5-pgaudit.log` |
 
-### 5.5 Quản trị bằng chứng
+### 4.5 Quản trị bằng chứng
 
 Năm file chạy tay còn chứa đường dẫn máy cá nhân dạng `/mnt/d/...` (`t1-block-cross-department-insert.txt`, `t5-app-user-ddl-denied.txt`, `t5-app-user-ddl-not-created.txt`, `test-db.txt`, `test-audit.txt`). Không lộ bí mật, nhưng nên thay bằng đầu ra do CI sinh ra khi có thể; `make-manifest.sh` hiện chỉ cảnh báo, đặt `STRICT=1` để coi là lỗi. Ngoài ra, sha256 ghi trong `test-audit.txt` của lần chạy tay khớp với `t5-pgaudit.log` đang lưu, còn bản `test-audit.txt` do CI sinh ra có sha256 khác vì log mỗi lần chạy có thời điểm và mã tiến trình riêng; không nên so sha256 giữa hai lần chạy.
 
+## 5. Phần còn lại của rủi ro, giới hạn và hướng mở rộng
 
-### 5.6 Rủi ro còn lại sau khi làm cứng
+### 5.1 Rủi ro còn lại sau khi làm cứng
 
 | Mối | Rủi ro còn lại |
 |---|---|
@@ -198,32 +176,19 @@ Năm file chạy tay còn chứa đường dẫn máy cá nhân dạng `/mnt/d/.
 | T4 | **Chưa có biện pháp.** Không có thu hồi chứng chỉ khách riêng lẻ; muốn thu hồi phải thay CA và cấp lại toàn bộ chứng chỉ; máy trạm quản trị bị chiếm thì lộ khóa |
 | T5 | Chỉ bật `ddl,role`, không có `read`, nên không có dấu vết ai đã đọc dữ liệu; pgaudit ghi nguyên văn câu lệnh nên câu `CREATE ROLE ... PASSWORD` với mật khẩu thật sẽ nằm trong log (tệp bằng chứng của nhóm đã được lọc, không chứa mật khẩu) |
 
-### 5.7 Giới hạn của công việc
+### 5.2 Giới hạn của công việc
 
 - `app_user` có `SELECT` trên `app.users`, bảng có cột `password_hash` và không có RLS; chấp nhận được với dữ liệu giả, sản phẩm thật cần thu hẹp theo cột.
-- Bằng chứng trước/sau là tái lập (mục 5.4); mật khẩu và chứng chỉ là giá trị dev.
-- `attack.sh` và `defend.sh` có bản chạy tay (10/10 và 09/10) và bản chạy trên CI ở commit `fb09032`.
-- SBOM và chữ ký Cosign: SBOM của ba image nằm trong `bang-chung/sbom/`; ký keyless chỉ chạy trên `main`, các file `*.sigstore.json` không commit vào kho nên cần tải artifact của lần chạy trên thẻ nộp.
-- Các đầu ra CI của nginx, web, pytest tích hợp và gitleaks chỉ có trong artifact cho tới khi PR bổ sung được gộp.
+- Bằng chứng trước/sau là tái lập (mục 4.4); mật khẩu và chứng chỉ là giá trị dev.
+- `attack.sh` và `defend.sh` có bản chạy tay (10/10 và 09/10) và bản chạy trên CI ở commit `b38c8b2`.
+- SBOM và chữ ký Cosign: SBOM của ba image nằm trong `bang-chung/sbom/`; run CI 38157131284 trên commit `b38c8b2` ghi nhận `Verified OK` cho cả ba SBOM. Ký keyless chỉ chạy trên `main`, các file `*.sigstore.json` không commit vào kho nên cần tải artifact của lần chạy trên thẻ nộp. Trường tên image trong SBOM thể hiện đường dẫn tar tạm do Syft dùng khi quét, không phải tên image ổn định; cần nhận diện image bằng digest SHA-256.
+- Bốn tệp đầu ra CI của nginx, web, pytest tích hợp và gitleaks đã được lưu trong `bang-chung/` từ run 38157131256. Chúng chỉ là bằng chứng cho commit `b38c8b2`; PR #33, #34, #35 chưa có lần chạy Actions xanh.
 
-### 5.8 Điều còn bỏ ngỏ và hướng mở rộng
+### 5.3 Điều còn bỏ ngỏ và hướng mở rộng
 
 CA nội bộ có CRL/OCSP; đăng nhập và lấy phòng ban từ danh tính đã xác thực; chứng chỉ khách cho kết nối DB (`clientcert=verify-full`); chuyển mật khẩu sang cơ chế bí mật của orchestrator hoặc tệp `.env` nằm ngoài git; gửi log pgaudit sang nơi lưu tập trung chỉ ghi thêm; HSTS, `ssl_ciphers` chỉ AEAD, giới hạn tốc độ ở nginx; một biện pháp và ca kiểm cho T4; quét gitleaks toàn bộ lịch sử (`fetch-depth: 0`).
 
-### 5.9 Tình trạng của bản nộp
-
-| Hạng mục | Tình trạng |
-|---|---|
-| nginx: TLS 1.2/1.3, mTLS cho `/admin`, 3 ca `test-nginx.sh` | Có trong `main`, chạy trong `make verify` |
-| Web: `/health`, `/db-check` có phòng ban của phiên, pytest | Có trong `main`, `test-web.sh` chạy trong `make verify` |
-| PostgreSQL: RLS bật và FORCE, policy theo phòng ban (T1) | Có trong `main`, `test-db.sh` và `test-m3-security.sh` trong `make verify` |
-| PostgreSQL: pgaudit ghi DDL và đổi vai trò (T5) | Có trong `main`, `test-audit.sh` trong `make verify` |
-| PostgreSQL: TLS, `hostssl` + `scram-sha-256`, web `verify-full` (T3) | Có trong `main`, `test-t3-db.sh` trong `make verify` |
-| Ghim digest ba image, SBOM CycloneDX, ký Cosign | Digest ghim trong ba Dockerfile; SBOM của ba image có trong `bang-chung/sbom/` và được sinh lại trong `ci.yml`; ký Cosign chỉ chạy trên `main`, các file `*.sigstore.json` không commit vào kho |
-| MANIFEST sha256, quét gitleaks, `attack`, `defend`, `export-evidence`, `preflight` | Có trong `main`, nối vào `Makefile`; CI `make verify` xanh (commit `fb09032`) |
-| Đầu ra CI của nginx, web, pytest tích hợp và gitleaks | Hiện chỉ nằm trong artifact của CI; bản lưu trong kho sẽ bổ sung bằng một PR nhỏ sau M3 |
-
-## 6. Phân công có bằng chứng
+## 6. Kế hoạch, điều phối và phân công
 
 Nhật ký điều phối đầy đủ ở `docs/nhat-ky-dieu-phoi.md` (mỗi dòng có ngày, người, việc, mốc); lịch sử commit và pull request là nguồn khách quan về ai làm gì.
 
@@ -235,7 +200,7 @@ Nhật ký điều phối đầy đủ ở `docs/nhat-ky-dieu-phoi.md` (mỗi d�
 | Nguyễn Ngọc Quỳnh Chi | Web app, kiểm thử tích hợp | Web Flask, `/db-check`, pytest web, `test-web.sh`, `test-m3-security.sh`; review PR bằng chứng của Hà | |
 | Hoàng Văn Trọng | nginx, TLS/mTLS, chứng chỉ, T3 | Cấu hình nginx, `generate-dev-certs.sh`, `test-nginx.sh`, testssl, T3 (`hostssl`, `ssl = on`, `test-t3-db.sh`) sau review | Chạy lại testssl trên cổng 443 |
 
-Danh sách pull request của từng thành viên:
+Danh sách pull request và commit của từng thành viên:
 
 | Thành viên | Pull request đã gộp | Pull request đã review của người khác |
 |---|---|---|
@@ -244,9 +209,3 @@ Danh sách pull request của từng thành viên:
 | Nguyễn Thị Ngọc Trâm | #16, #20, #27, #28 | #4, #5, #26, #29 |
 | Nguyễn Ngọc Quỳnh Chi | #6, #15, #23, #25 | #7, #10, #13, #14, #24, #28, #30, #31 |
 | Hoàng Văn Trọng | #14,#17,#19,#22,#26 | #7,#18,#25 |
-
-## 7. Tài liệu tham khảo
-
-| Nguồn (tên, tác giả hoặc tổ chức, đường dẫn, ngày truy cập) | Dùng cho mục | Người gửi |
-|---|---|---|
-| | | |
